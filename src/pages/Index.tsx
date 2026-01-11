@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
 import { toast } from 'sonner';
+import GoogleAuth from '@/components/GoogleAuth';
 
 type Rarity = 'legendary' | 'red' | 'blue' | 'common';
 
@@ -36,18 +37,46 @@ const ITEMS: Item[] = [
 
 const CASES: CaseType[] = [
   {
-    id: 'sharp',
-    name: 'Sharp Case',
-    price: 100,
+    id: 'basic',
+    name: 'Basic Case',
+    price: 50,
     currency: 'gold',
-    items: ITEMS.filter(i => i.rarity === 'red' || i.rarity === 'common'),
+    items: ITEMS.filter(i => i.rarity === 'blue' || i.rarity === 'common'),
   },
   {
-    id: 'knife',
-    name: 'Knife Case',
+    id: 'advanced',
+    name: 'Advanced Case',
+    price: 150,
+    currency: 'gold',
+    items: ITEMS.filter(i => i.rarity === 'red' || i.rarity === 'blue' || i.rarity === 'common'),
+  },
+  {
+    id: 'elite',
+    name: 'Elite Case',
+    price: 300,
+    currency: 'gold',
+    items: ITEMS.filter(i => i.rarity !== 'common'),
+  },
+  {
+    id: 'legendary',
+    name: 'Legendary Case',
     price: 500,
     currency: 'gold',
     items: ITEMS,
+  },
+  {
+    id: 'premium',
+    name: 'Premium Case',
+    price: 800,
+    currency: 'gold',
+    items: ITEMS.filter(i => i.rarity === 'legendary' || i.rarity === 'red'),
+  },
+  {
+    id: 'ultimate',
+    name: 'Ultimate Case',
+    price: 1200,
+    currency: 'gold',
+    items: ITEMS.filter(i => i.rarity === 'legendary'),
   },
 ];
 
@@ -150,11 +179,16 @@ export default function Index() {
   };
 
   const handleClick = () => {
-    const randomSilver = Math.floor(Math.random() * 1800) + 200;
-    const randomGold = Math.floor(Math.random() * 50) + 10;
-    setSilver(prev => prev + randomSilver);
-    setGold(prev => prev + randomGold);
-    toast.success(`+${randomSilver} серебра, +${randomGold} золота`);
+    const randomCurrency = Math.random() > 0.5;
+    if (randomCurrency) {
+      const randomSilver = Math.floor(Math.random() * 2000) + 1000;
+      setSilver(prev => prev + randomSilver);
+      toast.success(`+${randomSilver} серебра (С)`);
+    } else {
+      const randomGold = Math.floor(Math.random() * 2000) + 1000;
+      setGold(prev => prev + randomGold);
+      toast.success(`+${randomGold} золота (Г)`);
+    }
   };
 
   const handleBattle = () => {
@@ -199,7 +233,8 @@ export default function Index() {
             </div>
           </div>
           
-          <div className="flex gap-4">
+          <div className="flex gap-4 items-center">
+            <GoogleAuth onLogin={(user) => toast.success(`Добро пожаловать, ${user.name}!`)} />
             <Card className="px-4 py-2 bg-slate-800/50 border-slate-700 flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center font-bold text-white">С</div>
               <span className="font-semibold text-gray-300">{silver.toLocaleString()}</span>
@@ -326,37 +361,51 @@ export default function Index() {
               </Card>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {CASES.map(caseType => (
-                <Card key={caseType.id} className="p-6 bg-slate-800/50 border-slate-700 hover:border-cyan-500 transition-all">
-                  <div className="space-y-4">
-                    <div className="text-center">
-                      <h3 className="text-2xl font-bold mb-2">{caseType.name}</h3>
-                      <div className="flex items-center justify-center gap-2 text-yellow-400">
-                        <Icon name="Crown" size={24} />
-                        <span className="text-xl font-bold">{caseType.price}</span>
+                <Card 
+                  key={caseType.id} 
+                  className="group relative overflow-hidden bg-gradient-to-br from-slate-800/90 to-slate-900/90 border-2 border-slate-700 hover:border-cyan-500 transition-all hover:scale-105"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  
+                  <div className="relative p-6 space-y-4">
+                    <div className="text-center space-y-2">
+                      <div className="w-20 h-20 mx-auto bg-gradient-to-br from-slate-700 to-slate-800 rounded-lg flex items-center justify-center shadow-xl">
+                        <Icon name="Package" size={40} className="text-cyan-400" />
+                      </div>
+                      <h3 className="text-xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                        {caseType.name}
+                      </h3>
+                      <div className="flex items-center justify-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center font-bold text-xs text-slate-900">Г</div>
+                        <span className="text-2xl font-bold text-yellow-400">{caseType.price}</span>
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-2">
-                      {caseType.items.slice(0, 4).map(item => (
-                        <div
-                          key={item.id}
-                          className={`h-24 rounded bg-gradient-to-br ${getRarityColor(item.rarity)} p-2 flex flex-col items-center justify-center`}
-                        >
-                          <Icon name="Sword" size={32} className="text-white" />
-                          <span className="text-xs text-white text-center mt-1">{item.name}</span>
-                        </div>
-                      ))}
+                    <div className="bg-slate-900/50 rounded-lg p-3">
+                      <div className="text-xs text-slate-400 text-center mb-2">Содержимое:</div>
+                      <div className="grid grid-cols-2 gap-2">
+                        {caseType.items.slice(0, 4).map(item => (
+                          <div
+                            key={item.id}
+                            className={`h-20 rounded-lg bg-gradient-to-br ${getRarityColor(item.rarity)} p-2 flex flex-col items-center justify-center shadow-lg relative overflow-hidden`}
+                          >
+                            <div className="absolute inset-0 bg-black/20"></div>
+                            <Icon name="Sword" size={24} className="text-white relative z-10" />
+                            <span className="text-[10px] text-white text-center mt-1 relative z-10 font-semibold">{item.name.split('|')[0]}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <Button
                       onClick={() => handleOpenCase(caseType)}
                       disabled={isOpening || gold < caseType.price}
-                      className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500"
+                      className="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 disabled:from-slate-700 disabled:to-slate-800 font-bold text-lg py-6 shadow-lg"
                       size="lg"
                     >
-                      Открыть кейс
+                      {gold < caseType.price ? '🔒 Недостаточно Г' : '🎁 Открыть'}
                     </Button>
                   </div>
                 </Card>
