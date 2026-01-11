@@ -83,12 +83,14 @@ const openCase = (caseItems: Item[]): Item => {
 };
 
 export default function Index() {
-  const [currentView, setCurrentView] = useState<'home' | 'inventory' | 'shop'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'inventory' | 'shop' | 'battle'>('home');
   const [silver, setSilver] = useState(5000);
   const [gold, setGold] = useState(1000);
   const [inventory, setInventory] = useState<Item[]>([]);
   const [isOpening, setIsOpening] = useState(false);
   const [wonItem, setWonItem] = useState<Item | null>(null);
+  const [isBattling, setIsBattling] = useState(false);
+  const [battleResult, setBattleResult] = useState<'win' | 'lose' | null>(null);
 
   const handleOpenCase = (caseType: CaseType) => {
     if (gold < caseType.price) {
@@ -126,9 +128,41 @@ export default function Index() {
     toast.success(`+${randomSilver} серебра, +${randomGold} золота`);
   };
 
+  const handleBattle = () => {
+    setIsBattling(true);
+    setBattleResult(null);
+
+    setTimeout(() => {
+      const isWin = Math.random() > 0.5;
+      setBattleResult(isWin ? 'win' : 'lose');
+      setIsBattling(false);
+
+      if (isWin) {
+        const silverReward = Math.floor(Math.random() * 1000) + 500;
+        const goldReward = 400;
+        setSilver(prev => prev + silverReward);
+        setGold(prev => prev + goldReward);
+        toast.success(`🏆 Победа! +${silverReward} серебра, +${goldReward} золота`);
+      } else {
+        const silverReward = Math.floor(Math.random() * 300) + 100;
+        setSilver(prev => prev + silverReward);
+        toast.error(`💀 Поражение! +${silverReward} серебра`);
+      }
+    }, 4000);
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
-      <div className="container mx-auto px-4 py-8">
+    <div 
+      className="min-h-screen text-white relative"
+      style={{
+        backgroundImage: 'url(https://cdn.poehali.dev/projects/fa499df3-3a0e-4bd9-aba8-d93c648f57ef/files/cbc2bc48-8366-4cb3-beb8-44c6439d1e20.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-800/85 to-slate-900/90"></div>
+      <div className="container mx-auto px-4 py-8 relative z-10">
         <header className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <div className="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
@@ -150,7 +184,7 @@ export default function Index() {
 
         {currentView === 'home' && (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Button
                 onClick={() => setCurrentView('inventory')}
                 size="lg"
@@ -175,17 +209,37 @@ export default function Index() {
                 <Icon name="Sparkles" size={32} className="mr-3" />
                 Кликер
               </Button>
+              <Button
+                onClick={() => setCurrentView('battle')}
+                size="lg"
+                className="h-24 text-xl bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500"
+              >
+                <Icon name="Swords" size={32} className="mr-3" />
+                Бой
+              </Button>
             </div>
 
-            <div className="text-center py-12">
-              <img 
-                src="https://cdn.poehali.dev/files/1000595009.jpg" 
-                alt="Case Logo" 
-                className="w-64 h-64 mx-auto rounded-full shadow-2xl shadow-cyan-500/50 animate-glow"
-              />
-              <h2 className="text-3xl font-bold mt-6 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
-                Открывай кейсы и собирай легендарные ножи!
-              </h2>
+            <div className="grid md:grid-cols-2 gap-8 py-12">
+              <div className="text-center">
+                <img 
+                  src="https://cdn.poehali.dev/files/1000595009.jpg" 
+                  alt="Case Logo" 
+                  className="w-64 h-64 mx-auto rounded-full shadow-2xl shadow-cyan-500/50 animate-glow"
+                />
+                <h2 className="text-2xl font-bold mt-6 bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+                  Открывай кейсы!
+                </h2>
+              </div>
+              <div className="text-center">
+                <img 
+                  src="https://cdn.poehali.dev/files/1000594973.jpg" 
+                  alt="Battle Car" 
+                  className="w-64 h-64 mx-auto rounded-lg shadow-2xl shadow-orange-500/50 animate-float object-cover"
+                />
+                <h2 className="text-2xl font-bold mt-6 bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
+                  Сражайся и побеждай!
+                </h2>
+              </div>
             </div>
           </div>
         )}
@@ -313,6 +367,71 @@ export default function Index() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {currentView === 'battle' && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-3xl font-bold">Арена боёв</h2>
+              <Button onClick={() => setCurrentView('home')} variant="outline">
+                <Icon name="Home" className="mr-2" />
+                Домой
+              </Button>
+            </div>
+
+            <Card className="p-8 bg-slate-800/90 border-slate-700">
+              <div className="text-center space-y-6">
+                <div className="relative">
+                  <img 
+                    src="https://cdn.poehali.dev/files/1000594973.jpg" 
+                    alt="Battle Arena" 
+                    className="w-full max-w-2xl mx-auto rounded-lg shadow-2xl"
+                  />
+                  {isBattling && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg">
+                      <div className="text-4xl font-bold animate-pulse">⚔️ БОЙ ИДЁТ ⚔️</div>
+                    </div>
+                  )}
+                </div>
+
+                {battleResult && !isBattling && (
+                  <div className={`text-3xl font-bold py-6 px-8 rounded-lg ${
+                    battleResult === 'win' 
+                      ? 'bg-gradient-to-r from-green-600 to-emerald-600' 
+                      : 'bg-gradient-to-r from-red-600 to-orange-600'
+                  }`}>
+                    {battleResult === 'win' ? '🏆 ПОБЕДА!' : '💀 ПОРАЖЕНИЕ'}
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div className="text-xl font-semibold">
+                    <p className="text-green-400">🏆 При победе: 500-1500 серебра + 400 золота</p>
+                    <p className="text-red-400">💀 При поражении: 100-400 серебра</p>
+                  </div>
+
+                  <Button
+                    onClick={handleBattle}
+                    disabled={isBattling}
+                    size="lg"
+                    className="w-full max-w-md bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-2xl py-8"
+                  >
+                    {isBattling ? (
+                      <>
+                        <Icon name="Loader2" size={32} className="mr-3 animate-spin" />
+                        Бой в процессе...
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="Swords" size={32} className="mr-3" />
+                        Начать бой
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </Card>
           </div>
         )}
       </div>
