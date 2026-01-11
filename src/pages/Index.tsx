@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import Icon from '@/components/ui/icon';
@@ -22,12 +22,16 @@ interface CaseType {
 }
 
 const ITEMS: Item[] = [
-  { id: '1', name: 'Керамбит голд', rarity: 'legendary', collection: 'Золотая коллекция' },
-  { id: '2', name: 'Тычки Аркана', rarity: 'red', collection: 'Красная коллекция' },
-  { id: '3', name: 'Бабочка нож Аркана', rarity: 'red', collection: 'Красная коллекция' },
-  { id: '4', name: 'Jikomanda нож Аркана', rarity: 'red', collection: 'Красная коллекция' },
-  { id: '5', name: 'Babka GeY нож', rarity: 'blue', collection: 'Синяя Коллекция' },
-  { id: '6', name: 'Ничего', rarity: 'common', collection: 'Обычная' },
+  { id: '1', name: 'Керамбит | Gradient', rarity: 'legendary', collection: 'Золотая коллекция' },
+  { id: '2', name: 'Karambit | Fade', rarity: 'legendary', collection: 'Золотая коллекция' },
+  { id: '3', name: 'Butterfly | Doppler', rarity: 'red', collection: 'Красная коллекция' },
+  { id: '4', name: 'Karambit | Tiger Tooth', rarity: 'red', collection: 'Красная коллекция' },
+  { id: '5', name: 'M9 Bayonet | Crimson Web', rarity: 'red', collection: 'Красная коллекция' },
+  { id: '6', name: 'Flip Knife | Slaughter', rarity: 'red', collection: 'Красная коллекция' },
+  { id: '7', name: 'Huntsman | Night', rarity: 'blue', collection: 'Синяя Коллекция' },
+  { id: '8', name: 'Bowie | Damascus Steel', rarity: 'blue', collection: 'Синяя Коллекция' },
+  { id: '9', name: 'Gut Knife | Rust Coat', rarity: 'blue', collection: 'Синяя Коллекция' },
+  { id: '10', name: 'Ничего', rarity: 'common', collection: 'Обычная' },
 ];
 
 const CASES: CaseType[] = [
@@ -58,12 +62,16 @@ const getRarityColor = (rarity: Rarity) => {
 
 const getRarityChance = (item: Item): number => {
   const chances: Record<string, number> = {
-    '1': 1,
-    '2': 4,
-    '3': 5,
-    '4': 7,
-    '5': 19,
-    '6': 64,
+    '1': 0.5,
+    '2': 0.5,
+    '3': 2,
+    '4': 2,
+    '5': 3,
+    '6': 3,
+    '7': 10,
+    '8': 9,
+    '9': 10,
+    '10': 60,
   };
   return chances[item.id] || 0;
 };
@@ -84,13 +92,34 @@ const openCase = (caseItems: Item[]): Item => {
 
 export default function Index() {
   const [currentView, setCurrentView] = useState<'home' | 'inventory' | 'shop' | 'battle'>('home');
-  const [silver, setSilver] = useState(5000);
-  const [gold, setGold] = useState(1000);
-  const [inventory, setInventory] = useState<Item[]>([]);
+  const [silver, setSilver] = useState(() => {
+    const saved = localStorage.getItem('silver');
+    return saved ? parseInt(saved) : 5000;
+  });
+  const [gold, setGold] = useState(() => {
+    const saved = localStorage.getItem('gold');
+    return saved ? parseInt(saved) : 1000;
+  });
+  const [inventory, setInventory] = useState<Item[]>(() => {
+    const saved = localStorage.getItem('inventory');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [isOpening, setIsOpening] = useState(false);
   const [wonItem, setWonItem] = useState<Item | null>(null);
   const [isBattling, setIsBattling] = useState(false);
   const [battleResult, setBattleResult] = useState<'win' | 'lose' | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('silver', silver.toString());
+  }, [silver]);
+
+  useEffect(() => {
+    localStorage.setItem('gold', gold.toString());
+  }, [gold]);
+
+  useEffect(() => {
+    localStorage.setItem('inventory', JSON.stringify(inventory));
+  }, [inventory]);
 
   const handleOpenCase = (caseType: CaseType) => {
     if (gold < caseType.price) {
@@ -105,7 +134,7 @@ export default function Index() {
     setTimeout(() => {
       const item = openCase(caseType.items);
       setWonItem(item);
-      if (item.id !== '6') {
+      if (item.id !== '10') {
         setInventory(prev => [...prev, item]);
       }
       setIsOpening(false);
@@ -172,11 +201,11 @@ export default function Index() {
           
           <div className="flex gap-4">
             <Card className="px-4 py-2 bg-slate-800/50 border-slate-700 flex items-center gap-2">
-              <Icon name="Coins" className="text-gray-400" size={20} />
+              <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center font-bold text-white">С</div>
               <span className="font-semibold text-gray-300">{silver.toLocaleString()}</span>
             </Card>
             <Card className="px-4 py-2 bg-slate-800/50 border-slate-700 flex items-center gap-2">
-              <Icon name="Crown" className="text-yellow-500" size={20} />
+              <div className="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center font-bold text-slate-900">Г</div>
               <span className="font-semibold text-yellow-400">{gold.toLocaleString()}</span>
             </Card>
           </div>
